@@ -1,0 +1,20 @@
+﻿@using BurroCartas.Data
+@inject Servicos servico
+
+<div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+    @foreach (var carta in CartasIA)
+    {
+        <div class="rounded-2 p-2 m-1 shadow" style="color: @carta.Cor; border: 1px solid black; width: 10%;">
+            <b class="w-50">@carta.Simbolo</b>
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">@carta.Tipo</span>
+        </div>
+    }
+</div>
+<div class="border-top p-2">
+    <strong>@CartasIA.Count</strong>
+</div>
+
+@code{
+    [Parameter] public List<Carta> CartasIA { get; set; }
+}

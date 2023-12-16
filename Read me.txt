@@ -1,0 +1,9 @@
+1-És sempre o primeiro a jogar.
+2-Para jogar só precisas clicar na carta que pretendes jogar.
+3-Depis do agente jogar uma carta que você(Utilizador) jogou deve dar 3 segundo.
+4-Se a vantagem for dele(Agente) ele jogará imediatamente, se não ele vai esperar você jogar.
+5-Se a carta jogada tanto você ou por ele, não tiver disponivel na carta do seu adversário ele deve buscar na reseva. Se na reserva não tiver ele deve levar do seu adversário, e a vantagem torna-se do adversário.
+
+OBS importante:
+	-As carta tem a sua ordem de valor um maior que outro, da seguinte forma:
+Carta: A > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2. Só a carta nº 2 não é maior que uma das carta.

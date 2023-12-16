@@ -1,0 +1,52 @@
+﻿@page "/fetchdata"
+
+@using BurroCartas.Data
+@inject Servicos servico
+
+<h1>Todas as cartas</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+<div class="nav__menu">
+    <div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+        @if (Cartas == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            foreach (var carta in Cartas)
+            {
+                <div class="rounded-2 p-2 m-1 shadow" style="color: @carta.Cor; border: 1px solid black; width: 10%;">
+                    <b class="w-50">@carta.Simbolo</b>
+                    <br />
+                    <span class="d-block w-100 text-center" style="font-size: 12pt;">@carta.Tipo</span>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<Carta> Cartas;
+
+    protected override void OnInitialized()
+    {
+        Cartas = servico.GetCartas();
+    }
+}
+<style>
+    .nav__menu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        color: #666;
+        background-color: #ffffff;
+        box-shadow: 0 3px 12px #1F1F1E;
+        width: 100%;
+        display: grid;
+        align-content: center;
+        border-radius: .25rem .25rem 0 0;
+        transition: .4s;
+    }
+</style>

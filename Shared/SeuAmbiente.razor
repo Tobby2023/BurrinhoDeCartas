@@ -1,0 +1,45 @@
+﻿@using BurroCartas.Data
+@inject Servicos servico
+
+<div class="nav__menu">
+    <div class="border-bottom p-2">
+        <strong>@CartasTuas.Count</strong>
+    </div>
+    <div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+        @foreach (var carta in CartasTuas)
+        {
+            <div @onclick="@(() => Jogar(carta))" class="rounded-2 p-2 m-1 shadow" style="color: @(carta.Cor); border: 1px solid black; width: 10%;">
+                <b class="w-50">@carta.Simbolo</b>
+                <br />
+                <span class="d-block w-100 text-center" style="font-size: 12pt;">@carta.Tipo</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Carta> CartasTuas { set; get; }
+    [Parameter] public Carta Carta { set; get; }
+    [Parameter] public EventCallback Jogado { set; get; }
+
+    private void Jogar(Carta carta)
+    {
+        Carta = carta;
+        CartasTuas.Remove(carta);
+    }
+}
+<style>
+    .nav__menu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        color: #666;
+        background-color: #ffffff;
+        box-shadow: 0 3px 12px #1F1F1E;
+        width: 100%;
+        display: grid;
+        align-content: center;
+        border-radius: .25rem .25rem 0 0;
+        transition: .4s;
+    }
+</style>

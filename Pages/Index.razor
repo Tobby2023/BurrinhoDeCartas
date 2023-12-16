@@ -1,0 +1,258 @@
+﻿@page "/"
+@using BurroCartas.Data
+@inject Servicos servico
+
+<!--div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+    @foreach (var carta in CartasIA)
+    {
+        <div class="rounded-2 p-2 m-1 shadow" style="color: @carta.Cor; border: 1px solid black; width: 10%;">
+            <b class="w-50">@carta.Simbolo</b>
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">@carta.Tipo</span>
+        </div>
+    }
+</div-->
+<div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+    @foreach (var carta in CartasIA)
+    {
+        <div class="rounded-2 p-2 m-1 shadow" style="background-color: gray; border: 1px solid black; width: 10%;">
+            <b class="w-50">?</b>
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">?</span>
+        </div>
+    }
+</div>
+<div class="border-top p-2 border-bottom">
+    <strong>@CartasIA.Count</strong> - Sobrando
+</div>
+
+<div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+    @if(Cartas[0].Count != 0)
+    {
+        <div @onclick="@(async () => await chupar(Carta[1]))" class="rounded-2 p-2 m-1 shadow" style="background-color: gray; border: 1px solid black; width: 10%;">
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">@Cartas[0].Count</span>
+        </div>
+    }
+</div>
+<strong class="w-100 text-xl-center" style="color: @(estado)">@mensagem</strong>
+
+<div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+    @if (Carta[0] is not null)
+    {
+        <div class="rounded-2 p-2 m-1 shadow" style="color: @Carta[0].Cor; border: 1px solid black; width: 10%;">
+            <b class="w-50">@Carta[0].Simbolo</b>
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">@Carta[0].Tipo</span>
+        </div>
+    }
+    @if (Carta[1] is not null)
+    {
+        <div @onclick="@(async () => await chupar(Carta[1]))" class="rounded-2 p-2 m-1 shadow" style="color: @Carta[1].Cor; border: 1px solid black; width: 10%;">
+            <b class="w-50">@Carta[1].Simbolo</b>
+            <br />
+            <span class="d-block w-100 text-center" style="font-size: 12pt;">@Carta[1].Tipo</span>
+        </div>
+    }
+</div>
+
+<div class="nav__menu">
+    <div class="border-bottom p-2">
+        <strong>@CartasTuas.Count</strong>
+    </div>
+    <div class="py-2 d-flex justify-content-center w-100" style="flex-wrap: wrap;">
+        @foreach (var carta in CartasTuas)
+        {
+            <div @onclick="@(async () => await SuaJogada(carta))" class="rounded-2 p-2 m-1 shadow" style="color: @(carta.Cor); border: 1px solid black; width: 10%;">
+                <b class="w-50">@carta.Simbolo</b>
+                <br />
+                <span class="d-block w-100 text-center" style="font-size: 12pt;">@carta.Tipo</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    Carta[] Carta = new Carta[2];
+    bool SuaVez = true;
+    string mensagem = string.Empty;
+    string estado = string.Empty;
+    bool chupou = false;
+
+    List<List<Carta>> Cartas = new();
+
+    List<Carta> CartasIA = new();
+    List<Carta> CartasTuas = new();
+    Estado Inteligencia;
+
+    private async Task chupar(Carta carta)
+    {
+        if (SuaVez)
+        {
+            Inteligencia.Inserir(carta.Tipo);
+            chupou = true;
+            if (Cartas[0].Count > 0)
+            {
+                var crt = Cartas[0].ElementAt(0);
+                CartasTuas.Add(crt);
+                Cartas[0].Remove(crt);
+            }
+            else
+            {
+                CartasTuas.Add(carta);
+                SuaVez = !SuaVez;
+                Carta[0] = null;
+                Carta[1] = null;
+
+                await Avaliar();
+            }
+        }
+    }
+
+    private async Task SuaJogada(Carta carta)
+    {
+        if (SuaVez)
+        {
+            if(Carta[1] is not null)
+            {
+                if (carta.Tipo == Carta[1].Tipo)
+                {
+                    Carta[0] = carta;
+                    CartasTuas.Remove(carta);
+
+                    if (!chupou)
+                    {
+                        Inteligencia.Remover(carta.Tipo);
+                    }
+
+                    await Avaliar();
+                }
+                else
+                {
+                    _ = App.Current.MainPage.DisplayAlert("Jogada Invalida", "Deves jogar carta do mesmo tipo\nOu levas.", "OK");
+                }
+            }
+            else
+            {
+                Carta[0] = carta;
+                CartasTuas.Remove(carta);
+                SuaVez = !SuaVez;
+            }
+        }
+
+        if (!SuaVez)
+            await IAJogada();
+    }
+
+    private async Task IAJogada()
+    {
+        Carta carta;
+
+        if (Carta[0] is not null)
+        {
+            carta = Inteligencia.JogarComCarta(CartasTuas, CartasIA, Carta[0]);
+            if (carta is not null) { carta = CartasIA.Find(c => c.Id == carta.Id); }
+
+            if(carta is null)
+            {
+                if(Cartas[0].Count > 0)
+                {
+                    Carta crt;
+                    do
+                    {
+                        crt = Cartas[0].ElementAt(0);
+                        CartasIA.Add(crt);
+                        Cartas[0].Remove(crt);
+                    } while ((Cartas[0].Count > 0) && (crt.Tipo != Carta[0].Tipo));
+
+                    if (crt.Tipo != Carta[0].Tipo)
+                    {
+                        CartasIA.Add(Carta[0]);
+                        SuaVez = !SuaVez;
+                        Carta[0] = null;
+                        Carta[1] = null;
+                        return;
+                    }
+                    else
+                    {
+                        Carta[1] = crt;
+                        CartasIA.Remove(crt);
+                    }
+                }
+                else
+                {
+                    CartasIA.Add(Carta[0]);
+                    SuaVez = !SuaVez;
+                    Carta[0] = null;
+                    Carta[1] = null;
+                }
+            }
+            else if (carta.Tipo == Carta[0].Tipo)
+            {
+                Carta[1] = carta;
+                CartasIA.Remove(carta);
+            }
+            await Avaliar();
+        }
+        else
+        {
+            carta = Inteligencia.JogarSemCarta(CartasTuas, CartasIA);
+            if (carta is not null) { carta = CartasIA.Find(c => c.Id == carta.Id); }
+
+            Carta[1] = carta;
+            CartasIA.Remove(carta);
+            SuaVez = !SuaVez;
+        }
+    }
+
+    private async Task Avaliar()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(3));
+
+        if(CartasTuas.Count == 0)
+        {
+            mensagem = "Você ganhou!!!";
+            estado = "green";
+            Carta[0] = null;
+            Carta[1] = null;
+        }
+        else if(CartasIA.Count == 0)
+        {
+            mensagem = "Você perdeu!!!";
+            estado = "red";
+            Carta[0] = null;
+            Carta[1] = null;
+        }
+        else
+        {
+            if ((Carta[0] is null) || (Carta[1] is null))
+            {
+                if (!SuaVez)
+                    await IAJogada();
+            }
+            else if (Carta[0].Id > Carta[1].Id)
+            {
+                SuaVez = true;
+                Carta[0] = null;
+                Carta[1] = null;
+            }
+            else
+            {
+                SuaVez = false;
+                Carta[0] = null;
+                Carta[1] = null;
+                await IAJogada();
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        var Carts = servico.Baralhar();
+        Cartas = servico.DividirPara(Carts);
+
+        CartasIA = Cartas[2].OrderBy(c => c.Id).ToList();
+        CartasTuas = Cartas[1].OrderBy(c => c.Id).ToList();
+        Inteligencia = new();
+    }
+}
